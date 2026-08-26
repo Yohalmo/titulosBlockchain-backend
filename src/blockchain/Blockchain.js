@@ -2,9 +2,15 @@ import fs from "fs";
 import path from "path";
 import { Block } from "../models/Block.js";
 import { generateHash } from "../utils/sha256.js";
+import {
+  decryptJson,
+  encryptJson,
+  isEncryptedPayload
+} from "../utils/encryptedStorage.js";
 
 const DATA_DIR = path.resolve("data");
 const DATA_FILE = path.join(DATA_DIR, "blockchain.json");
+const TEMP_DATA_FILE = path.join(DATA_DIR, "blockchain.json.tmp");
 
 export class Blockchain {
   constructor(complexity = 4, proofChar = "0") {
@@ -131,17 +137,27 @@ export class Blockchain {
 
   save() {
     fs.mkdirSync(DATA_DIR, { recursive: true });
-    fs.writeFileSync(
-      DATA_FILE,
-      JSON.stringify(this.blockChain, null, 2),
-      "utf8"
-    );
+    const encryptedPayload = encryptJson(this.blockChain);
+
+    fs.writeFileSync(TEMP_DATA_FILE, JSON.stringify(encryptedPayload, null, 2), {
+      encoding: "utf8",
+      mode: 0o600
+    });
+    fs.renameSync(TEMP_DATA_FILE, DATA_FILE);
   }
 
   load() {
     if (!fs.existsSync(DATA_FILE)) return;
 
-    const raw = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+    const storedPayload = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+    const isLegacyPlaintext = Array.isArray(storedPayload);
+    const raw = isEncryptedPayload(storedPayload)
+      ? decryptJson(storedPayload)
+      : storedPayload;
+
+    if (!Array.isArray(raw)) {
+      throw new Error("El archivo de blockchain no contiene una cadena valida.");
+    }
 
     this.blockChain = raw.map((item) => {
       const block = new Block(item.id, item.previousHash);
@@ -151,5 +167,9 @@ export class Blockchain {
       block.hash = item.hash;
       return block;
     });
+
+    if (isLegacyPlaintext) {
+      this.save();
+    }
   }
 }
