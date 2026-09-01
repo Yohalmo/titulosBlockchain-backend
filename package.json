@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/server.js",
+    "keys:generate": "node scripts/generateKeys.js",
     "start": "node src/server.js"
   },
   "dependencies": {
