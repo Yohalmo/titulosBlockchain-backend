@@ -20,9 +20,17 @@ export class Block {
     return false;
   }
 
-  addTitle(title) {
-    const transaction = new Transaction(this.transactions.length, title);
+  addTransaction(type, data, senderWalletId = null, receiverWalletId = null, amount = 0) {
+    const transaction = new Transaction(
+      this.transactions.length,
+      type,
+      data,
+      senderWalletId,
+      receiverWalletId,
+      amount
+    );
     this.transactions.push(transaction);
+    return transaction;
   }
 
   toString() {

@@ -1,9 +1,12 @@
 export class Transaction {
-    constructor(id, title) {
+    constructor(id, type, data, senderWalletId = null, receiverWalletId = null, amount = 0) {
         this.id = id;
         this.timeStamp = Date.now();
-        this.type = "ACADEMIC_TITLE";
-        this.data = title;
+        this.type = type; // "INITIAL_BALANCE", "ACADEMIC_TITLE", "TITLE_REVIEW"
+        this.data = data;
+        this.senderWalletId = senderWalletId;
+        this.receiverWalletId = receiverWalletId;
+        this.amount = amount;
     }
 
     toString() {
@@ -11,7 +14,10 @@ export class Transaction {
             id: this.id,
             timeStamp: this.timeStamp,
             type: this.type,
-            data: this.data
+            data: this.data,
+            senderWalletId: this.senderWalletId,
+            receiverWalletId: this.receiverWalletId,
+            amount: this.amount
         });
     }
 }
